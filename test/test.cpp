@@ -60,8 +60,13 @@ TEST_CASE("AscendingIterator: empty container") {
     auto it = c.begin_ascending_order();
     auto end = c.end_ascending_order();
     CHECK(it == end); // both should point to the end
-}
+    std::ostringstream oss;
+    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it) {
+        oss << *it << " "; // this should never run
+    }
 
+    CHECK(oss.str() == "");
+}
 
 TEST_CASE("AscendingIterator: multiple elements") {
     MyContainer<int> c;
@@ -89,4 +94,164 @@ TEST_CASE("AscendingIterator: stability after remove") {
     for (auto it = c.begin_ascending_order(); it != c.end_ascending_order(); ++it, ++i) {
         CHECK(*it == expected[i]);
     }
+}
+
+TEST_CASE("AscendingIterator: dereferencing end throws") {
+    MyContainer<int> c;
+    c.add(1);
+    auto it = c.end_ascending_order();
+    CHECK_THROWS_WITH(*it, "Attempted to dereference AscendingIterator beyond the end.");
+}
+
+TEST_CASE("AscendingIterator: incrementing past end throws") {
+    MyContainer<int> c;
+    c.add(1);
+    auto it = c.begin_ascending_order();
+    ++it; // now at end
+    CHECK_THROWS_WITH(++it, "Cannot increment - AscendingIterator past the end.");
+}
+
+
+
+TEST_CASE("DescendingIterator: empty container") {
+    MyContainer<int> c;
+    auto it = c.begin_descending_order();
+    auto end = c.end_descending_order();
+    CHECK(it == end); // nothing to iterate
+
+    std::ostringstream oss;
+    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it) {
+        oss << *it << " "; // this should never run
+    }
+
+    CHECK(oss.str() == "");
+}
+
+TEST_CASE("DescendingIterator: one element") {
+    MyContainer<int> c;
+    c.add(42);
+
+    std::ostringstream oss;
+    for (auto it = c.begin_descending_order(); it != c.end_descending_order(); ++it) {
+        oss << *it << " ";
+    }
+    CHECK(oss.str() == "42 ");
+}
+
+TEST_CASE("DescendingIterator: multiple elements") {
+    MyContainer<int> c;
+    c.add(4);
+    c.add(10);
+    c.add(2);
+    c.add(7);
+
+    std::vector<int> expected = {10, 7, 4, 2};
+    size_t i = 0;
+    for (auto it = c.begin_descending_order(); it != c.end_descending_order(); ++it, ++i) {
+        CHECK(*it == expected[i]);
+    }
+}
+
+TEST_CASE("DescendingIterator: after removing max") {
+    MyContainer<int> c;
+    c.add(3);
+    c.add(8);
+    c.add(5);
+    c.remove(8); // remove the largest value
+
+    std::vector<int> expected = {5, 3};
+    size_t i = 0;
+    for (auto it = c.begin_descending_order(); it != c.end_descending_order(); ++it, ++i) {
+        CHECK(*it == expected[i]);
+    }
+}
+TEST_CASE("DescendingIterator: dereferencing end throws") {
+    MyContainer<int> c;
+    c.add(1);
+    auto it = c.end_descending_order();
+    CHECK_THROWS_WITH(*it, "Attempted to dereference - DescendingIterator beyond the end.");
+}
+
+TEST_CASE("DescendingIterator: incrementing past end throws") {
+    MyContainer<int> c;
+    c.add(1);
+    auto it = c.begin_descending_order();
+    ++it; 
+    CHECK_THROWS_WITH(++it, "Cannot increment - DescendingIterator past the end.");
+}
+
+
+TEST_CASE("SideCrossIterator: empty container") {
+    MyContainer<int> c;
+    auto it = c.begin_side_cross_order();
+    auto end = c.end_side_cross_order();
+    CHECK(it == end); // nothing to iterate
+
+    std::ostringstream oss;
+    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it) {
+        oss << *it << " "; // this should never run
+    }
+
+    CHECK(oss.str() == "");
+}
+
+
+
+TEST_CASE("SideCrossIterator: one element") {
+    MyContainer<int> c;
+    c.add(5);
+
+    std::ostringstream oss;
+    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it) {
+        oss << *it << " ";
+    }
+    CHECK(oss.str() == "5 ");
+}
+
+TEST_CASE("SideCrossIterator: even number of elements") {
+    MyContainer<int> c;
+    c.add(10);
+    c.add(1);
+    c.add(7);
+    c.add(3);
+
+    // sorted: [1, 3, 7, 10]
+    // side-cross: 1, 10, 3, 7
+    std::vector<int> expected = {1, 10, 3, 7};
+    size_t i = 0;
+    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it, ++i) {
+        CHECK(*it == expected[i]);
+    }
+}
+
+TEST_CASE("SideCrossIterator: odd number of elements") {
+    MyContainer<int> c;
+    c.add(2);
+    c.add(9);
+    c.add(5);
+    c.add(1);
+    c.add(7);
+
+    // sorted: [1, 2, 5, 7, 9]
+    // side-cross: 1, 9, 2, 7, 5
+    std::vector<int> expected = {1, 9, 2, 7, 5};
+    size_t i = 0;
+    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it, ++i) {
+        CHECK(*it == expected[i]);
+    }
+}
+
+TEST_CASE("SideCrossIterator: dereferencing end throws") {
+    MyContainer<int> c;
+    c.add(1);
+    auto it = c.end_side_cross_order();
+    CHECK_THROWS_AS(*it, std::out_of_range);
+}
+
+TEST_CASE("SideCrossIterator: incrementing past end throws") {
+    MyContainer<int> c;
+    c.add(3);
+    auto it = c.begin_side_cross_order();
+    ++it; // moves to end if only one element
+    CHECK_THROWS_AS(++it, std::logic_error);
 }
