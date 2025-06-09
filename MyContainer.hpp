@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
+#include <cstddef>
 
 namespace container {
 
@@ -236,7 +237,7 @@ namespace container {
         public:
             ReverseIterator(const std::vector<T>& data, bool is_end = false)
                 : ref_data(data) {
-                index = is_end || data.empty() ? 0 : data.size() - 1;
+                index = is_end || data.empty() ? SIZE_MAX : data.size() - 1;
             }
         
             const T& operator*() const {
@@ -248,7 +249,7 @@ namespace container {
         
             ReverseIterator& operator++() {
                 if (index == 0) {
-                    index = ref_data.size(); // move to end
+                    index = SIZE_MAX;
                 } else {
                     --index;
                 }

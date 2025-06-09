@@ -255,3 +255,55 @@ TEST_CASE("SideCrossIterator: incrementing past end throws") {
     ++it; // moves to end if only one element
     CHECK_THROWS_AS(++it, std::logic_error);
 }
+TEST_CASE("ReverseIterator: empty container") {
+    MyContainer<int> c;
+    auto it = c.begin_reverse_order();
+    auto end = c.end_reverse_order();
+    CHECK(it == end); // nothing to iterate
+
+    std::ostringstream oss;
+    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it) {
+        oss << *it << " "; // this should never run
+    }
+
+    CHECK(oss.str() == "");
+}
+
+TEST_CASE("ReverseIterator: one element") {
+    MyContainer<int> c;
+    c.add(42);
+
+    std::ostringstream oss;
+    for (auto it = c.begin_reverse_order(); it != c.end_reverse_order(); ++it) {
+        oss << *it << " ";
+    }
+    CHECK(oss.str() == "42 ");
+}
+
+TEST_CASE("ReverseIterator: multiple elements") {
+    MyContainer<int> c;
+    c.add(1);
+    c.add(2);
+    c.add(3);
+
+    std::vector<int> expected = {3, 2, 1};
+    size_t i = 0;
+    for (auto it = c.begin_reverse_order(); it != c.end_reverse_order(); ++it, ++i) {
+        CHECK(*it == expected[i]);
+    }
+}
+
+TEST_CASE("ReverseIterator: dereferencing end throws") {
+    MyContainer<int> c;
+    c.add(5);
+    auto it = c.end_reverse_order();
+    CHECK_THROWS_AS(*it, std::out_of_range);
+}
+
+TEST_CASE("ReverseIterator: incrementing past end throws nothing (it's allowed)") {
+    MyContainer<int> c;
+    c.add(1);
+    auto it = c.begin_reverse_order();
+    ++it; // should move to end
+    CHECK(it == c.end_reverse_order());
+}
