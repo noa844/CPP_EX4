@@ -5,8 +5,12 @@ CXXFLAGS = -std=c++17 -Wall -Iinclude
 all: Main
 
 # Compile demo
-Main: demo/Demo.cpp
-	$(CXX) $(CXXFLAGS) demo/Demo.cpp -o main
+Main: demo.cpp
+	$(CXX) $(CXXFLAGS) demo.cpp -o main 
+
+# Compile and run demo
+main: Main
+	./main
 
 # Compile and run tests
 test: test/test.cpp

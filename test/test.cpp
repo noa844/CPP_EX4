@@ -1,6 +1,8 @@
+//noa.honigstein@gmail.com
+
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include "../MyContainer.hpp"
+#include "../include/MyContainer.hpp"
 #include <string>
 #include <sstream>
 using namespace container;
