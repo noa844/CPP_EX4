@@ -61,7 +61,7 @@ TEST_CASE("AscendingIterator: empty container") {
     auto end = c.end_ascending_order();
     CHECK(it == end); // both should point to the end
     std::ostringstream oss;
-    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it) {
+    for (auto it = c.begin_ascending_order(); it != c.end_ascending_order(); ++it) {
         oss << *it << " "; // this should never run
     }
 
@@ -100,7 +100,7 @@ TEST_CASE("AscendingIterator: dereferencing end throws") {
     MyContainer<int> c;
     c.add(1);
     auto it = c.end_ascending_order();
-    CHECK_THROWS_WITH(*it, "Attempted to dereference AscendingIterator beyond the end.");
+    CHECK_THROWS_WITH(*it, "Attempted to desourceerence AscendingIterator beyond the end.");
 }
 
 TEST_CASE("AscendingIterator: incrementing past end throws") {
@@ -120,7 +120,7 @@ TEST_CASE("DescendingIterator: empty container") {
     CHECK(it == end); // nothing to iterate
 
     std::ostringstream oss;
-    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it) {
+    for (auto it = c.begin_descending_order(); it != c.end_descending_order(); ++it) {
         oss << *it << " "; // this should never run
     }
 
@@ -169,7 +169,7 @@ TEST_CASE("DescendingIterator: dereferencing end throws") {
     MyContainer<int> c;
     c.add(1);
     auto it = c.end_descending_order();
-    CHECK_THROWS_WITH(*it, "Attempted to dereference - DescendingIterator beyond the end.");
+    CHECK_THROWS_WITH(*it, "Attempted to desourceerence - DescendingIterator beyond the end.");
 }
 
 TEST_CASE("DescendingIterator: incrementing past end throws") {
@@ -245,7 +245,7 @@ TEST_CASE("SideCrossIterator: dereferencing end throws") {
     MyContainer<int> c;
     c.add(1);
     auto it = c.end_side_cross_order();
-    CHECK_THROWS_AS(*it, std::out_of_range);
+    CHECK_THROWS_WITH(*it, "Cannot desourceerence SideCrossIterator: out of range");
 }
 
 TEST_CASE("SideCrossIterator: incrementing past end throws") {
@@ -253,16 +253,18 @@ TEST_CASE("SideCrossIterator: incrementing past end throws") {
     c.add(3);
     auto it = c.begin_side_cross_order();
     ++it; // moves to end if only one element
-    CHECK_THROWS_AS(++it, std::logic_error);
+    CHECK_THROWS_WITH(++it, "Cannot increment SideCrossIterator past the end.");
 }
+
 TEST_CASE("ReverseIterator: empty container") {
     MyContainer<int> c;
     auto it = c.begin_reverse_order();
     auto end = c.end_reverse_order();
     CHECK(it == end); // nothing to iterate
+    CHECK_THROWS_WITH(*it, "Cannot desourceerence ReverseIterator: out of range");
 
     std::ostringstream oss;
-    for (auto it = c.begin_side_cross_order(); it != c.end_side_cross_order(); ++it) {
+    for (auto it = c.begin_reverse_order(); it != c.end_reverse_order(); ++it) {
         oss << *it << " "; // this should never run
     }
 
@@ -275,6 +277,7 @@ TEST_CASE("ReverseIterator: one element") {
 
     std::ostringstream oss;
     for (auto it = c.begin_reverse_order(); it != c.end_reverse_order(); ++it) {
+        
         oss << *it << " ";
     }
     CHECK(oss.str() == "42 ");
@@ -296,8 +299,13 @@ TEST_CASE("ReverseIterator: multiple elements") {
 TEST_CASE("ReverseIterator: dereferencing end throws") {
     MyContainer<int> c;
     c.add(5);
-    auto it = c.end_reverse_order();
-    CHECK_THROWS_AS(*it, std::out_of_range);
+    auto it = c.begin_reverse_order();
+    ++it;
+    CHECK_THROWS_WITH(*it, "Cannot desourceerence ReverseIterator: out of range");
+
+    auto end = c.end_reverse_order();
+    CHECK_THROWS_WITH(*end, "Cannot desourceerence ReverseIterator: out of range");
+
 }
 
 TEST_CASE("ReverseIterator: incrementing past end throws nothing (it's allowed)") {
@@ -307,3 +315,134 @@ TEST_CASE("ReverseIterator: incrementing past end throws nothing (it's allowed)"
     ++it; // should move to end
     CHECK(it == c.end_reverse_order());
 }
+
+
+TEST_CASE("OrderIterator: empty container") {
+    MyContainer<int> c;
+    auto it = c.begin_order();
+    auto end = c.end_order();
+    CHECK(it == end); // should not iterate
+    CHECK_THROWS_WITH(*it, "Cannot desourceerence OrderIterator: out of range");
+
+    std::ostringstream oss;
+    for (auto it = c.begin_order(); it != c.end_order(); ++it) {
+        oss << *it << " "; // this should never run
+    }
+
+    CHECK(oss.str() == "");
+}
+
+TEST_CASE("OrderIterator: one element") {
+    MyContainer<int> c;
+    c.add(11);
+
+    std::ostringstream oss;
+    for (auto it = c.begin_order(); it != c.end_order(); ++it) {
+        oss << *it << " ";
+    }
+    CHECK(oss.str() == "11 ");
+}
+
+TEST_CASE("OrderIterator: multiple elements") {
+    MyContainer<int> c;
+    c.add(1);
+    c.add(4);
+    c.add(9);
+
+    std::vector<int> expected = {1, 4, 9};
+    size_t i = 0;
+    for (auto it = c.begin_order(); it != c.end_order(); ++it, ++i) {
+        CHECK(*it == expected[i]);
+    }
+}
+
+TEST_CASE("OrderIterator: dereferencing end throws") {
+    MyContainer<int> c;
+    c.add(77);
+    auto it = c.end_order();
+    CHECK_THROWS_WITH(*it, "Cannot desourceerence OrderIterator: out of range");
+}
+
+TEST_CASE("OrderIterator: incrementing past end throws") {
+    MyContainer<int> c;
+    c.add(5);
+    auto it = c.begin_order();
+    ++it;
+    CHECK_THROWS_WITH(++it, "Cannot increment OrderIterator past the end.");
+}
+
+TEST_CASE("MiddleOutIterator: empty container") {
+    MyContainer<int> c;
+    auto it = c.begin_middle_out_order();
+    auto end = c.end_middle_out_order();
+    CHECK(it == end);
+
+    std::ostringstream oss;
+    for (auto it = c.begin_middle_out_order(); it != c.end_middle_out_order(); ++it) {
+        oss << *it << " ";
+    }
+    CHECK(oss.str() == "");
+}
+
+TEST_CASE("MiddleOutIterator: one element") {
+    MyContainer<int> c;
+    c.add(42);
+
+    std::ostringstream oss;
+    for (auto it = c.begin_middle_out_order(); it != c.end_middle_out_order(); ++it) {
+        oss << *it << " ";
+    }
+    CHECK(oss.str() == "42 ");
+}
+
+TEST_CASE("MiddleOutIterator: odd number of elements") {
+    MyContainer<int> c;
+    c.add(1);
+    c.add(2);
+    c.add(3);
+    c.add(4);
+    c.add(5);
+
+    std::vector<int> expected = {3, 2, 4, 1, 5};
+    size_t i = 0;
+    for (auto it = c.begin_middle_out_order(); it != c.end_middle_out_order(); ++it, ++i) {
+        CHECK(*it == expected[i]);
+    }
+}
+
+TEST_CASE("MiddleOutIterator: even number of elements") {
+    MyContainer<int> c;
+    c.add(10);
+    c.add(20);
+    c.add(30);
+    c.add(40);
+
+    std::vector<int> expected = {30, 20, 40, 10};
+    size_t i = 0;
+    for (auto it = c.begin_middle_out_order(); it != c.end_middle_out_order(); ++it, ++i) {
+        CHECK(*it == expected[i]);
+    }
+}
+
+TEST_CASE("MiddleOutIterator: dereferencing end throws") {
+    MyContainer<int> c;
+    c.add(1);
+    auto it = c.begin_middle_out_order();
+    ++it; // moves to end
+    CHECK_THROWS_WITH(*it, "MiddleOutIterator: index out of bounds");
+}
+TEST_CASE("MiddleOutIterator: incrementing past end throws") {
+    MyContainer<int> c;
+    c.add(5);
+    c.add(1);
+    c.add(1);
+
+    auto it = c.begin_middle_out_order();
+    ++it;
+    ++it;
+    ++it;
+    CHECK_THROWS_WITH(++it, "Cannot increment MiddleOutIterator past the end.");
+}
+
+
+

@@ -43,7 +43,7 @@ namespace container {
                 return data.size();
             }
   
-            const std::vector<T>& getData() const {
+            const std::vector<T>& getData() const { //for testing
                 return data;
             }
             
@@ -63,23 +63,24 @@ namespace container {
 
     class AscendingIterator {
     private:
+        
         std::vector<T> sortedData;
         size_t index;
         
     public:
         // Constructor for begin()
-        AscendingIterator(const std::vector<T>& originalData): sortedData(originalData), index(0) {
+        AscendingIterator(const std::vector<T>& originalData):sortedData(originalData), index(0) {
             std::sort(sortedData.begin(), sortedData.end());
         }
 
         // Constructor for end()
-        AscendingIterator(const std::vector<T>& originalData, size_t endIndex): sortedData(originalData), index(endIndex) {
+        AscendingIterator(const std::vector<T>& originalData, size_t endIndex):sortedData(originalData), index(endIndex) {
             std::sort(sortedData.begin(), sortedData.end());
         }
         
         const T& operator*() const {
             if (index >= sortedData.size()) {
-                throw std::runtime_error("Attempted to dereference AscendingIterator beyond the end.");
+                throw std::runtime_error("Attempted to desourceerence AscendingIterator beyond the end.");
             }
             return sortedData.at(index);
         }
@@ -125,14 +126,14 @@ namespace container {
 
         const T& operator*() const {
             if (index >= sortedData.size()) {
-                throw std::out_of_range("Attempted to dereference - DescendingIterator beyond the end.");
+                throw std::runtime_error("Attempted to desourceerence - DescendingIterator beyond the end.");
             }
             return sortedData.at(index);
         }
 
         DescendingIterator& operator++() {
             if (index >= sortedData.size()) {
-                throw std::logic_error("Cannot increment - DescendingIterator past the end.");
+                throw std::runtime_error("Cannot increment - DescendingIterator past the end.");
             }
             ++index;
             return *this;
@@ -157,45 +158,47 @@ namespace container {
 
     class SideCrossIterator {
         private:
-            std::vector<T> sorted_data;
-            size_t left;
-            size_t right;
+            std::vector<T> sortedData;
+            int left;
+            int right;
             bool leftSide;
         
         public:
             SideCrossIterator(const std::vector<T>& original_data, bool is_end = false)
-                : sorted_data(original_data), left(0), right(0), leftSide(true) {
-                std::sort(sorted_data.begin(), sorted_data.end());
-                
-                if (sorted_data.empty()) {
-                    left = 1;
-                    right = 0;
-                    return;
-                }
-        
+                : sortedData(original_data), left(0), right(0), leftSide(true) {
+                std::sort(sortedData.begin(), sortedData.end());
+                int n = static_cast<int>(sortedData.size());
                 if (is_end) {
-                    // This sets the state to "past the end"
-                    left = sorted_data.size();
-                    right = 0;
+                    size_t mid = n / 2;
+                    if( n % 2 == 0){
+                        left = mid;
+                        right = mid - 1;
+                    }else{
+                        left = mid + 1;
+                        right = mid;
+                    }
+                    
                 } else {
                     left = 0;
-                    right = sorted_data.size() - 1;
+                    right = n - 1;
                 }
+
             }
         
             const T& operator*() const {
-               
-                if (left > right || left >= sorted_data.size()) {
-                    throw std::out_of_range("Cannot dereference SideCrossIterator: out of range");
+                
+                int n = static_cast<int>(sortedData.size());
+                if (left > right || left >= n) {
+                    throw std::runtime_error("Cannot desourceerence SideCrossIterator: out of range");
                 }
          
-                return leftSide ? sorted_data[left] : sorted_data[right];
+                return leftSide ? sortedData[left] : sortedData[right];
             }
         
             SideCrossIterator& operator++() {
-        
-                if (left > right || left >= sorted_data.size()) {
-                    throw std::logic_error("Cannot increment SideCrossIterator past the end.");
+                int n = static_cast<int>(sortedData.size());
+                if (left > right || left >= n) {
+                    throw std::runtime_error("Cannot increment SideCrossIterator past the end.");
                 }
         
                 if (leftSide) {
@@ -205,18 +208,17 @@ namespace container {
                 }
         
                 leftSide = !leftSide;
+                
                 return *this;
             }
 
-            bool is_done() const {
-                return left > right;
-            }            
-        
             bool operator!=(const SideCrossIterator& other) const {
-                return !is_done();
+               
+                return left != other.left || right != other.right || sortedData != other.sortedData;
             }
+
             bool operator==(const SideCrossIterator& other) const {
-                return is_done();
+                return !(*this != other);
             }
             
     };
@@ -231,20 +233,20 @@ namespace container {
 
     class ReverseIterator {
         private:
-            const std::vector<T>& ref_data;
+            const std::vector<T>& source_data;
             size_t index;
         
         public:
             ReverseIterator(const std::vector<T>& data, bool is_end = false)
-                : ref_data(data) {
+                : source_data(data) {
                 index = is_end || data.empty() ? SIZE_MAX : data.size() - 1;
             }
         
             const T& operator*() const {
-                if (ref_data.empty() || index >= ref_data.size()) {
-                    throw std::out_of_range("Cannot dereference ReverseIterator: out of range");
+                if (source_data.empty() || index == SIZE_MAX || index >= source_data.size()) {
+                    throw std::runtime_error("Cannot desourceerence ReverseIterator: out of range");
                 }
-                return ref_data[index];
+                return source_data[index];
             }
         
             ReverseIterator& operator++() {
@@ -257,7 +259,7 @@ namespace container {
             }
         
             bool operator!=(const ReverseIterator& other) const {
-                return index != other.index || &ref_data != &other.ref_data;
+                return index != other.index || &source_data != &other.source_data;
             }
         
             bool operator==(const ReverseIterator& other) const {
@@ -274,7 +276,122 @@ namespace container {
     }
         
            
+    class OrderIterator {
+        private:
+            const std::vector<T>& source_data;
+            size_t index;
+        
+        public:
+            OrderIterator(const std::vector<T>& data, bool is_end = false)
+                : source_data(data), index(is_end ? data.size() : 0) {}
+        
+            const T& operator*() const {
+                if (index >= source_data.size()) {
+                    throw std::runtime_error("Cannot desourceerence OrderIterator: out of range");
+                }
+                return source_data[index];
+            }
+        
+            OrderIterator& operator++() {
+                if (index >= source_data.size()) {
+                    throw std::runtime_error("Cannot increment OrderIterator past the end.");
+                }
+                ++index;
+                return *this;
+            }
+        
+            bool operator!=(const OrderIterator& other) const {
+                return index != other.index || &source_data != &other.source_data;
+            }
+        
+            bool operator==(const OrderIterator& other) const {
+                return !(*this != other);
+            }
+        };
 
+        OrderIterator begin_order() const {
+            return OrderIterator(data);
+        }
+        
+        OrderIterator end_order() const {
+            return OrderIterator(data, true);
+        }
+        
+    class MiddleOutIterator {
+        private:
+            const std::vector<T>& sourceData;
+            int left;
+            size_t right;
+            bool rightSide;
+
+        public:
+            MiddleOutIterator(const std::vector<T>& data, bool is_end = false)
+                : sourceData(data), rightSide(true) {
+                size_t n = data.size();
+                if (n == 0 || is_end) {
+                    left = -1;
+                    right = n;
+                }else if(n==1){
+                    left = 0;
+                    right = 0;
+                } else {
+                    size_t middle = n / 2;
+                    right = middle;
+                    left = static_cast<int>(middle) - 1;
+                }
+
+               
+            }
+
+            const T& operator*() const {
+                
+                
+                if (left < 0 && right >= sourceData.size()) {
+                    throw std::runtime_error("MiddleOutIterator: index out of bounds");
+                }
+                size_t index = rightSide ? right : static_cast<size_t>(left);
+                return sourceData.at(index);
+            }
+
+            MiddleOutIterator& operator++() {
+                
+                if (left < 0 && right >= sourceData.size()) {
+                    throw std::runtime_error("Cannot increment MiddleOutIterator past the end.");
+                }
+
+                if (rightSide) {
+                    ++right;
+                    if (sourceData.size() == 1 && right == 1){ //handle size is 1.
+                        --left;
+                    }
+                } else {
+                    --left;
+                }
+                
+
+                rightSide = !rightSide;
+                return *this;
+            }
+
+            bool operator!=(const MiddleOutIterator& other) const {
+                return left != other.left || right != other.right || &sourceData != &other.sourceData;
+            }
+
+            bool operator==(const MiddleOutIterator& other) const {
+                return !(*this != other);
+            }
+
+            
+    };
+    MiddleOutIterator begin_middle_out_order() const {
+        return MiddleOutIterator(data);
+    }
+    
+    MiddleOutIterator end_middle_out_order() const {
+        return MiddleOutIterator(data, true);
+    }
+       
 };
+
 
 } 
